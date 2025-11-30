@@ -121,22 +121,19 @@ async function processAddress(row, retryCount = 0) {
     console.log(`\nSUCCESS!: $${total.toFixed(2)} cash pizza → ${fullStreetAddress} (ID: ${placeResult?.Order?.OrderID || 'Pending'})`);
 
   } catch (err) {
-    const msg = err.message || err.toString();
-    let fullError = msg;
+      const msg = err.message || err.toString();
 
-    // log raw response for debugging (CAPTCHA details and raisin)
-    if (err.placeResponse) {
-      fullError += ` | Raw: ${JSON.stringify(err.placeResponse)}`;
-      console.log(`Raw Domino's response:`, err.placeResponse);
-    }
-
-    // CAPTCHA/Rate limit retry to hopefully work around ts
-    if (msg.includes('recaptcha') || msg.includes('Failure') || retryCount < CONFIG.maxRetries) {
-      const backoff = Math.pow(2, retryCount) * 60000; // 1min, 2min, 4min
-      console.log(`\nSuspected CAPTCHA/rate limit on ${fullStreetAddress}. Retrying in ${backoff/1000}s... (attempt ${retryCount + 1}/${CONFIG.maxRetries + 1})`);
-      await sleep(backoff);
-      return processAddress(row, retryCount + 1); // recursive retry
-    }
+      if (msg.includes('recaptcha') || msg.includes('PriceInformationRemoved') || msg.includes('Failure')) {
+        console.log(`\nIP BLOCKED... Dominoes triggered reCAPTCHA on this IP.`);
+        console.log(`To fix it create a new Codespace or Replit or switch to home Wi-Fi/mobile hotspot o algo. Also you can try and warm up the IP by doing an order manually or however the 'za is ordered.\n`);
+        results.push({
+          address: fullStreetAddress,
+          error: 'IP_BLOCKED_RECAPTCHA — ' + msg,
+          status: 'BLOCKED',
+          time: new Date().toISOString()
+        });
+        return;  // skip retries, move to next address
+      }
 
     results.push({
       address: fullStreetAddress,
