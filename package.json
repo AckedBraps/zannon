@@ -1,1 +1,13 @@
-
+{
+  "name": "dominos-mass",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node mass-cash-order.js"
+  },
+  "dependencies": {
+    "dominos": "latest",
+    "csv-parser": "latest",
+    "cli-progress": "latest"
+  }
+}
